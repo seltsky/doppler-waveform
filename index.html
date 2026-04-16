@@ -222,6 +222,74 @@ input[type="range"]::-webkit-slider-thumb {
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
+.protocol-section { }
+.protocol-step {
+  background: #0d1b30;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #1e3a5f;
+  border-left: 4px solid #64b5f6;
+  display: flex;
+  gap: 16px;
+}
+.step-number {
+  background: #1565c0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  height: fit-content;
+  text-align: center;
+  min-width: 55px;
+}
+.step-content { flex: 1; }
+.step-content h4 { font-size: 14px; color: #e0e0e0; margin-bottom: 8px; }
+.step-content ul { list-style: none; padding: 0; }
+.step-content li {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #b0bec5;
+  padding-left: 16px;
+  position: relative;
+}
+.step-content li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #64b5f6;
+}
+.step-content li strong { color: #e0e0e0; }
+.tip-box {
+  background: #112240;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #90a4ae;
+  border-left: 3px solid #ffb74d;
+  line-height: 1.6;
+}
+.tip-box strong { color: #ffb74d; }
+
+.checklist { }
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #b0bec5;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.check-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4caf50;
+}
+
 .speed-indicator {
   display: inline-block;
   width: 8px;
@@ -248,6 +316,7 @@ input[type="range"]::-webkit-slider-thumb {
   <div class="tab" data-tab="comparison">Normal vs Raynaud</div>
   <div class="tab" data-tab="anatomy">Vessel Map</div>
   <div class="tab" data-tab="scenarios">Clinical Scenarios</div>
+  <div class="tab" data-tab="protocol">Exam Protocol</div>
 </div>
 
 <div class="content">
@@ -437,6 +506,203 @@ input[type="range"]::-webkit-slider-thumb {
         </div>
       </div>
       <div class="info-box" id="scenario-info"></div>
+    </div>
+  </div>
+
+  <!-- Tab 5: Exam Protocol -->
+  <div id="tab-protocol" class="tab-content">
+    <div class="waveform-panel">
+      <h3>Upper Extremity Arterial Doppler — Exam Protocol</h3>
+      <div class="subtitle">Raynaud's Disease / Post-op Follow-up</div>
+    </div>
+
+    <div class="protocol-section">
+      <div class="protocol-step">
+        <div class="step-number">준비</div>
+        <div class="step-content">
+          <h4>Patient Preparation</h4>
+          <ul>
+            <li>환자 <strong>앙와위</strong>, 팔 외전 + 손바닥 위로 (supination)</li>
+            <li>Probe: <strong>Linear 7-12 MHz</strong> (digital artery는 12-15MHz)</li>
+            <li>실내 온도 <strong>따뜻하게</strong> 유지 (차가우면 vasospasm 유발)</li>
+            <li><strong>양쪽 팔</strong> 모두 노출 (비교 검사 필수)</li>
+            <li>환자 10-15분 안정 후 시작 (운동 직후 피할 것)</li>
+          </ul>
+          <div class="tip-box">
+            <strong>Tip:</strong> Raynaud's 환자는 검사실이 추우면 이미 vasospasm 상태일 수 있음. 따뜻한 물에 손 담그기 후 검사하면 baseline flow 확인 가능.
+          </div>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 1</div>
+        <div class="step-content">
+          <h4>Subclavian Artery</h4>
+          <ul>
+            <li><strong>접근:</strong> Supraclavicular fossa (쇄골 위)</li>
+            <li><strong>B-mode:</strong> 횡단면 + 종단면, 내경 측정, plaque/thrombus 확인</li>
+            <li><strong>Color Doppler:</strong> flow 방향, aliasing 여부</li>
+            <li><strong>Spectral Doppler:</strong> waveform 기록 + PSV 측정</li>
+            <li><strong>정상:</strong> Triphasic, PSV 80-120 cm/s</li>
+          </ul>
+          <div class="tip-box">
+            <strong>Check:</strong> TOS (Thoracic Outlet Syndrome) 의심 시 — 팔 거상(abduction + external rotation) 자세에서 flow 변화 확인
+          </div>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 2</div>
+        <div class="step-content">
+          <h4>Axillary Artery</h4>
+          <ul>
+            <li><strong>접근:</strong> 겨드랑이 (axilla), 팔 외전 상태</li>
+            <li><strong>B-mode → Color → Spectral</strong> 동일 순서</li>
+            <li><strong>정상:</strong> Triphasic, PSV 70-100 cm/s</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 3</div>
+        <div class="step-content">
+          <h4>Brachial Artery</h4>
+          <ul>
+            <li><strong>접근:</strong> 상완 내측 (medial arm)</li>
+            <li>Antecubital fossa까지 연속으로 따라감</li>
+            <li>Bifurcation (radial/ulnar 분지점) 확인</li>
+            <li><strong>정상:</strong> Triphasic, PSV 60-90 cm/s</li>
+          </ul>
+          <div class="tip-box">
+            <strong>Key point:</strong> Brachial은 proximal reference — 여기가 정상인데 distal이 비정상이면 그 사이에 병변
+          </div>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 4</div>
+        <div class="step-content">
+          <h4>Radial Artery</h4>
+          <ul>
+            <li><strong>접근:</strong> 손목 radial 측 (요골 동맥)</li>
+            <li>Wrist crease에서 proximal로 따라가며 스캔</li>
+            <li>내경 + PSV 기록</li>
+            <li><strong>정상:</strong> Triphasic, PSV 40-70 cm/s</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 5</div>
+        <div class="step-content">
+          <h4>Ulnar Artery</h4>
+          <ul>
+            <li><strong>접근:</strong> 손목 ulnar 측 (척골 동맥)</li>
+            <li>동일 평가 (B-mode → Color → Spectral)</li>
+            <li><strong>정상:</strong> Triphasic, PSV 35-60 cm/s</li>
+          </ul>
+          <div class="tip-box">
+            <strong>Hypothenar Hammer Syndrome 감별:</strong> Hook of hamate 부위에서 ulnar artery aneurysm/thrombosis 집중 확인. 이 부위에서 반복 외상 시 혈관 손상.
+          </div>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 6</div>
+        <div class="step-content">
+          <h4>Palmar Arch (가능하면)</h4>
+          <ul>
+            <li><strong>접근:</strong> 손바닥, 고주파 linear probe</li>
+            <li>Superficial palmar arch: ulnar dominant</li>
+            <li>Deep palmar arch: radial dominant</li>
+            <li>Arch 완성도 (complete vs incomplete) 확인</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 7</div>
+        <div class="step-content">
+          <h4>Digital Arteries <span style="color:#f44336">(핵심!)</span></h4>
+          <ul>
+            <li><strong>접근:</strong> 손가락 측면에 프로브, 12-15 MHz</li>
+            <li>Proper digital artery: 각 손가락 양쪽에 1개씩</li>
+            <li>증상 있는 손가락 <strong>집중 스캔</strong></li>
+            <li>Flow 유무가 Raynaud's 핵심 소견</li>
+            <li><strong>정상:</strong> Low-resistance pattern, PSV 15-45 cm/s</li>
+          </ul>
+          <div class="tip-box">
+            <strong>Raynaud's 핵심:</strong> 정상 = sharp systolic peak with diastolic flow. Raynaud's = blunted/absent flow. 손가락별로 차이가 나면 보고.
+          </div>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 8</div>
+        <div class="step-content">
+          <h4>Modified Allen's Test</h4>
+          <ul>
+            <li><strong>Radial 압박</strong> → Ulnar flow만으로 손 관류 확인 (palmar arch에서 Doppler)</li>
+            <li><strong>Ulnar 압박</strong> → Radial flow만으로 확인</li>
+            <li>양쪽 arch 소통 (communication) 평가</li>
+            <li>한쪽 압박 시 digital flow 유지 여부 확인</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="protocol-step">
+        <div class="step-number">Step 9</div>
+        <div class="step-content">
+          <h4>반대쪽 팔 반복</h4>
+          <ul>
+            <li><strong>양측 비교</strong>가 매우 중요</li>
+            <li>최소한 Brachial, Radial, Ulnar, Digital은 양쪽 다</li>
+            <li>같은 레벨에서 PSV 차이 50% 이상이면 비정상</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="protocol-step" style="border-left-color: #ff9800">
+        <div class="step-number" style="background:#ff9800">추가</div>
+        <div class="step-content">
+          <h4>Cold Provocation Test (선택)</h4>
+          <ul>
+            <li>Baseline digital artery waveform 먼저 기록</li>
+            <li>손을 차가운 물 (10-15°C)에 1-2분 담금</li>
+            <li>직후 + 5분 + 10분 후 digital artery 재측정</li>
+            <li><strong>정상:</strong> 5-7분 내 baseline 회복</li>
+            <li><strong>Raynaud's:</strong> PSV 70% 이상 감소, 10분 이상 회복 안 됨</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="protocol-step" style="border-left-color: #e91e63">
+        <div class="step-number" style="background:#e91e63">수술 후</div>
+        <div class="step-content">
+          <h4>Post-op 추시 시 추가 확인</h4>
+          <ul>
+            <li><strong>Sympathectomy:</strong> Digital flow 개선 여부가 핵심. 수술 전 대비 PSV 증가, RI 감소 확인</li>
+            <li><strong>Bypass graft:</strong> Graft patency 확인. Graft 내 flow + 문합부 PSV ratio</li>
+            <li>새로운 stenosis/thrombosis 발생 여부</li>
+            <li>수술 부위 전후 구간 집중 스캔</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="waveform-panel" style="margin-top: 16px">
+      <h3>Report Checklist</h3>
+      <div class="checklist">
+        <label class="check-item"><input type="checkbox"> 양측 각 동맥별 waveform pattern (tri/bi/mono)</label>
+        <label class="check-item"><input type="checkbox"> 각 레벨 PSV 기록</label>
+        <label class="check-item"><input type="checkbox"> 양측 비교 (대칭성)</label>
+        <label class="check-item"><input type="checkbox"> Stenosis/occlusion 위치 및 정도</label>
+        <label class="check-item"><input type="checkbox"> Digital artery flow 유무 (손가락별)</label>
+        <label class="check-item"><input type="checkbox"> RI 값 (주요 혈관)</label>
+        <label class="check-item"><input type="checkbox"> Allen's test 결과</label>
+        <label class="check-item"><input type="checkbox"> 수술 부위 상태 (해당 시)</label>
+        <label class="check-item"><input type="checkbox"> Cold provocation 결과 (시행 시)</label>
+      </div>
     </div>
   </div>
 </div>
