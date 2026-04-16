@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doppler Waveform Simulator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a1628;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+.header {
+  background: linear-gradient(135deg, #1a237e, #0d47a1);
+  padding: 16px 20px;
+  text-align: center;
+  border-bottom: 2px solid #1565c0;
+}
+.header h1 { font-size: 20px; color: #fff; }
+.header p { font-size: 12px; color: #90caf9; margin-top: 4px; }
+
+.tabs {
+  display: flex;
+  background: #0d1b30;
+  border-bottom: 1px solid #1e3a5f;
+  overflow-x: auto;
+}
+.tab {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab.active { color: #64b5f6; border-bottom-color: #64b5f6; background: #0a1628; }
+.tab:hover { background: #112240; }
+
+.content { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+.waveform-panel {
+  background: #0d1b30;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #1e3a5f;
+}
+.waveform-panel h3 {
+  font-size: 15px;
+  margin-bottom: 4px;
+  color: #64b5f6;
+}
+.waveform-panel .subtitle {
+  font-size: 12px;
+  color: #78909c;
+  margin-bottom: 12px;
+}
+
+canvas {
+  width: 100%;
+  height: 200px;
+  background: #000;
+  border-radius: 8px;
+  border: 1px solid #1e3a5f;
+}
+
+.params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+.param {
+  flex: 1;
+  min-width: 120px;
+}
+.param label {
+  display: block;
+  font-size: 11px;
+  color: #90a4ae;
+  margin-bottom: 4px;
+}
+.param .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.param .unit { font-size: 11px; color: #78909c; }
+
+.controls {
+  background: #0d1b30;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #1e3a5f;
+}
+.controls h3 { font-size: 14px; margin-bottom: 12px; color: #ffb74d; }
+
+.slider-group { margin-bottom: 12px; }
+.slider-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #b0bec5;
+  margin-bottom: 4px;
+}
+.slider-group label span { color: #64b5f6; font-weight: 600; }
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: #1e3a5f;
+  border-radius: 3px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #64b5f6;
+  cursor: pointer;
+}
+
+.scenario-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.scenario-btn {
+  padding: 8px 14px;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  background: #112240;
+  color: #b0bec5;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.scenario-btn.active, .scenario-btn:hover {
+  background: #1565c0;
+  color: #fff;
+  border-color: #1565c0;
+}
+
+.info-box {
+  background: #112240;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  border-left: 3px solid #ffb74d;
+}
+.info-box strong { color: #ffb74d; }
+
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .comparison { grid-template-columns: 1fr; }
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #b0bec5;
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.anatomy-section {
+  background: #0d1b30;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #1e3a5f;
+}
+.anatomy-section h3 { font-size: 15px; color: #64b5f6; margin-bottom: 12px; }
+.vessel-list { list-style: none; }
+.vessel-list li {
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.vessel-list li:hover { background: #112240; }
+.vessel-list li .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.vessel-list li .name { font-weight: 600; color: #e0e0e0; }
+.vessel-list li .desc { font-size: 11px; color: #78909c; margin-left: auto; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.speed-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Doppler Waveform Simulator</h1>
+  <p>Upper Extremity Arterial Doppler Education Tool</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="simulator">Interactive</div>
+  <div class="tab" data-tab="comparison">Normal vs Raynaud</div>
+  <div class="tab" data-tab="anatomy">Vessel Map</div>
+  <div class="tab" data-tab="scenarios">Clinical Scenarios</div>
+</div>
+
+<div class="content">
+  <!-- Tab 1: Interactive Simulator -->
+  <div id="tab-simulator" class="tab-content active">
+    <div class="controls">
+      <h3>Waveform Parameters</h3>
+      <div class="scenario-buttons">
+        <button class="scenario-btn active" onclick="setPreset('normal')">Normal (Triphasic)</button>
+        <button class="scenario-btn" onclick="setPreset('biphasic')">Biphasic</button>
+        <button class="scenario-btn" onclick="setPreset('monophasic')">Monophasic</button>
+        <button class="scenario-btn" onclick="setPreset('dampened')">Dampened</button>
+        <button class="scenario-btn" onclick="setPreset('absent')">Absent Flow</button>
+      </div>
+      <div class="slider-group">
+        <label>Peak Systolic Velocity (PSV) <span id="psv-val">80 cm/s</span></label>
+        <input type="range" id="psv" min="0" max="150" value="80" oninput="updateWaveform()">
+      </div>
+      <div class="slider-group">
+        <label>End Diastolic Velocity (EDV) <span id="edv-val">20 cm/s</span></label>
+        <input type="range" id="edv" min="-30" max="60" value="20" oninput="updateWaveform()">
+      </div>
+      <div class="slider-group">
+        <label>Diastolic Reversal <span id="reversal-val">-15 cm/s</span></label>
+        <input type="range" id="reversal" min="-40" max="0" value="-15" oninput="updateWaveform()">
+      </div>
+      <div class="slider-group">
+        <label>Heart Rate <span id="hr-val">72 bpm</span></label>
+        <input type="range" id="hr" min="40" max="120" value="72" oninput="updateWaveform()">
+      </div>
+    </div>
+
+    <div class="waveform-panel">
+      <h3 id="waveform-title">Normal Triphasic Waveform</h3>
+      <div class="subtitle" id="waveform-subtitle">High-resistance pattern — normal upper extremity artery</div>
+      <canvas id="mainCanvas"></canvas>
+      <div class="params">
+        <div class="param">
+          <label>PSV</label>
+          <div class="value" id="disp-psv">80 <span class="unit">cm/s</span></div>
+        </div>
+        <div class="param">
+          <label>EDV</label>
+          <div class="value" id="disp-edv">20 <span class="unit">cm/s</span></div>
+        </div>
+        <div class="param">
+          <label>RI</label>
+          <div class="value" id="disp-ri">0.75</div>
+        </div>
+        <div class="param">
+          <label>PI</label>
+          <div class="value" id="disp-pi">1.19</div>
+        </div>
+        <div class="param">
+          <label>Pattern</label>
+          <div class="value" id="disp-pattern">Triphasic</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" id="waveform-info">
+      <strong>Triphasic waveform:</strong> Normal high-resistance pattern.
+      Phase 1: rapid systolic upstroke. Phase 2: early diastolic flow reversal (reflects peripheral resistance).
+      Phase 3: late diastolic forward flow. Seen in normal resting upper & lower extremity arteries.
+    </div>
+  </div>
+
+  <!-- Tab 2: Comparison -->
+  <div id="tab-comparison" class="tab-content">
+    <div class="comparison">
+      <div class="waveform-panel">
+        <h3 style="color:#4caf50">Normal Digital Artery</h3>
+        <div class="subtitle">Sharp systolic peak, clear diastolic flow</div>
+        <canvas id="normalCanvas"></canvas>
+        <div class="params">
+          <div class="param"><label>PSV</label><div class="value">45 <span class="unit">cm/s</span></div></div>
+          <div class="param"><label>RI</label><div class="value">0.70</div></div>
+        </div>
+      </div>
+      <div class="waveform-panel">
+        <h3 style="color:#f44336">Raynaud's Digital Artery</h3>
+        <div class="subtitle">Blunted peak, dampened or absent flow</div>
+        <canvas id="raynaudCanvas"></canvas>
+        <div class="params">
+          <div class="param"><label>PSV</label><div class="value">12 <span class="unit">cm/s</span></div></div>
+          <div class="param"><label>RI</label><div class="value">1.0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="waveform-panel" style="margin-top:12px">
+      <h3>Brachial Artery Comparison</h3>
+      <div class="subtitle">Proximal vessel — changes are more subtle</div>
+      <canvas id="brachialCompCanvas"></canvas>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>Normal (Triphasic)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f44336"></div>Raynaud's (Dampened)</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Key differences in Raynaud's:</strong><br>
+      - Digital arteries: most affected — blunted or absent flow<br>
+      - Palmar arch: reduced flow velocity<br>
+      - Radial/Ulnar: may show increased RI, reduced EDV<br>
+      - Brachial: often near-normal (proximal vessels less affected)<br>
+      - Post cold provocation: waveform changes become more pronounced
+    </div>
+  </div>
+
+  <!-- Tab 3: Anatomy -->
+  <div id="tab-anatomy" class="tab-content">
+    <div class="anatomy-section">
+      <h3>Upper Extremity Arterial Map</h3>
+      <canvas id="anatomyCanvas" style="height:400px"></canvas>
+    </div>
+    <div class="anatomy-section">
+      <h3>Vessel Reference</h3>
+      <ul class="vessel-list">
+        <li onclick="showVesselWaveform('subclavian')">
+          <div class="dot" style="background:#e91e63"></div>
+          <span class="name">Subclavian A.</span>
+          <span class="desc">Triphasic, PSV 80-120</span>
+        </li>
+        <li onclick="showVesselWaveform('axillary')">
+          <div class="dot" style="background:#9c27b0"></div>
+          <span class="name">Axillary A.</span>
+          <span class="desc">Triphasic, PSV 70-100</span>
+        </li>
+        <li onclick="showVesselWaveform('brachial')">
+          <div class="dot" style="background:#2196f3"></div>
+          <span class="name">Brachial A.</span>
+          <span class="desc">Triphasic, PSV 60-90</span>
+        </li>
+        <li onclick="showVesselWaveform('radial')">
+          <div class="dot" style="background:#4caf50"></div>
+          <span class="name">Radial A.</span>
+          <span class="desc">Triphasic, PSV 40-70</span>
+        </li>
+        <li onclick="showVesselWaveform('ulnar')">
+          <div class="dot" style="background:#ff9800"></div>
+          <span class="name">Ulnar A.</span>
+          <span class="desc">Triphasic, PSV 35-60</span>
+        </li>
+        <li onclick="showVesselWaveform('palmar')">
+          <div class="dot" style="background:#00bcd4"></div>
+          <span class="name">Palmar Arch</span>
+          <span class="desc">Low-resistance, PSV 20-40</span>
+        </li>
+        <li onclick="showVesselWaveform('digital')">
+          <div class="dot" style="background:#f44336"></div>
+          <span class="name">Digital A.</span>
+          <span class="desc">Low-resistance, PSV 15-45</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tab 4: Clinical Scenarios -->
+  <div id="tab-scenarios" class="tab-content">
+    <div class="waveform-panel">
+      <h3>Clinical Scenarios</h3>
+      <div class="subtitle">Select a clinical scenario to see expected waveform patterns</div>
+      <div class="scenario-buttons" style="margin-top:12px">
+        <button class="scenario-btn" onclick="loadScenario('normal_rest')">Normal (Rest)</button>
+        <button class="scenario-btn" onclick="loadScenario('normal_exercise')">Normal (Post-exercise)</button>
+        <button class="scenario-btn" onclick="loadScenario('raynaud_mild')">Raynaud's (Mild)</button>
+        <button class="scenario-btn" onclick="loadScenario('raynaud_severe')">Raynaud's (Severe)</button>
+        <button class="scenario-btn" onclick="loadScenario('raynaud_cold')">Raynaud's (Cold Provocation)</button>
+        <button class="scenario-btn" onclick="loadScenario('stenosis')">Proximal Stenosis</button>
+        <button class="scenario-btn" onclick="loadScenario('occlusion')">Digital Occlusion</button>
+        <button class="scenario-btn" onclick="loadScenario('hypothenar')">Hypothenar Hammer</button>
+      </div>
+    </div>
+
+    <div id="scenario-display" style="display:none">
+      <div class="comparison">
+        <div class="waveform-panel">
+          <h3 id="scenario-vessel1-title">Brachial Artery</h3>
+          <canvas id="scenarioCanvas1"></canvas>
+          <div class="params" id="scenario-params1"></div>
+        </div>
+        <div class="waveform-panel">
+          <h3 id="scenario-vessel2-title">Digital Artery</h3>
+          <canvas id="scenarioCanvas2"></canvas>
+          <div class="params" id="scenario-params2"></div>
+        </div>
+      </div>
+      <div class="info-box" id="scenario-info"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Canvas setup
+function setupCanvas(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, w: rect.width, h: rect.height };
+}
+
+// Waveform generator
+function generateWaveform(psv, edv, reversal, hr, timeMs) {
+  const period = 60000 / hr;
+  const t = (timeMs % period) / period;
+
+  // Systolic upstroke (0 - 0.15)
+  // Peak (0.15)
+  // Diastolic reversal (0.25 - 0.35)
+  // Late diastolic forward (0.35 - 0.5)
+  // Rest of diastole (0.5 - 1.0)
+
+  let v = 0;
+  if (t < 0.05) {
+    // Rapid upstroke
+    v = psv * (t / 0.05) * (t / 0.05);
+  } else if (t < 0.12) {
+    // Peak region
+    v = psv * Math.cos((t - 0.05) / 0.07 * Math.PI * 0.3);
+  } else if (t < 0.22) {
+    // Rapid downstroke
+    const p = (t - 0.12) / 0.10;
+    v = psv * (1 - p) * Math.cos(0.3 * Math.PI) + reversal * p;
+  } else if (t < 0.32) {
+    // Reversal phase
+    const p = (t - 0.22) / 0.10;
+    v = reversal * (1 - p * p);
+  } else if (t < 0.45) {
+    // Late diastolic forward bump
+    const p = (t - 0.32) / 0.13;
+    const bump = edv * 0.6 * Math.sin(p * Math.PI);
+    v = bump;
+  } else {
+    // Diastolic decay
+    const p = (t - 0.45) / 0.55;
+    v = edv * 0.3 * Math.exp(-3 * p);
+  }
+
+  return v;
+}
+
+// Draw waveform on canvas
+function drawWaveform(canvasId, params, color = '#00ff41', animated = false) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#1a2a1a';
+  ctx.lineWidth = 0.5;
+  const gridSpacing = 20;
+  for (let x = 0; x < w; x += gridSpacing) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += gridSpacing) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+
+  // Baseline
+  const baseline = h * 0.65;
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, baseline);
+  ctx.lineTo(w, baseline);
+  ctx.stroke();
+
+  // Zero label
+  ctx.fillStyle = '#555';
+  ctx.font = '10px sans-serif';
+  ctx.fillText('0', 4, baseline - 3);
+
+  // Scale
+  const maxV = Math.max(Math.abs(params.psv), 20);
+  const scale = (baseline - 20) / maxV;
+
+  // Draw waveform
+  const { psv, edv, reversal, hr } = params;
+  const period = 60000 / hr;
+  const numCycles = 3;
+  const totalTime = period * numCycles;
+  const offset = animated ? Date.now() : 0;
+
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+
+  let started = false;
+  for (let x = 0; x < w; x++) {
+    const t = (x / w) * totalTime + offset;
+    const v = generateWaveform(psv, edv, reversal, hr, t);
+    const y = baseline - v * scale;
+
+    if (!started) { ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Fill under curve
+  ctx.globalAlpha = 0.15;
+  ctx.lineTo(w, baseline);
+  ctx.lineTo(0, baseline);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Scale markers
+  ctx.fillStyle = '#555';
+  ctx.font = '10px sans-serif';
+  if (psv > 0) {
+    const psvY = baseline - psv * scale;
+    ctx.fillText(`${psv}`, 4, psvY + 12);
+    ctx.strokeStyle = '#333';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(30, psvY); ctx.lineTo(w, psvY); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+// Draw two overlapping waveforms
+function drawDualWaveform(canvasId, params1, params2, color1, color2) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#1a2a1a';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < w; x += 20) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  const baseline = h * 0.65;
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, baseline); ctx.lineTo(w, baseline); ctx.stroke();
+
+  const maxV = Math.max(params1.psv, params2.psv, 20);
+  const scale = (baseline - 20) / maxV;
+
+  [{ p: params1, c: color1 }, { p: params2, c: color2 }].forEach(({ p, c }) => {
+    const totalTime = (60000 / p.hr) * 3;
+    ctx.beginPath(); ctx.strokeStyle = c; ctx.lineWidth = 2;
+    let started = false;
+    for (let x = 0; x < w; x++) {
+      const t = (x / w) * totalTime;
+      const v = generateWaveform(p.psv, p.edv, p.reversal, p.hr, t);
+      const y = baseline - v * scale;
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
+}
+
+// Draw anatomy diagram
+function drawAnatomy() {
+  const canvas = document.getElementById('anatomyCanvas');
+  if (!canvas) return;
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  ctx.fillStyle = '#0d1b30';
+  ctx.fillRect(0, 0, w, h);
+
+  const cx = w / 2;
+
+  // Arm outline
+  ctx.strokeStyle = '#1e3a5f';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 40, 20);
+  ctx.lineTo(cx - 35, 120);
+  ctx.lineTo(cx - 30, 220);
+  ctx.lineTo(cx - 45, 280);
+  ctx.lineTo(cx - 60, 340);
+  ctx.moveTo(cx + 40, 20);
+  ctx.lineTo(cx + 35, 120);
+  ctx.lineTo(cx + 30, 220);
+  ctx.lineTo(cx + 45, 280);
+  ctx.lineTo(cx + 60, 340);
+  ctx.stroke();
+
+  // Hand outline
+  ctx.beginPath();
+  ctx.ellipse(cx, 360, 65, 30, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Fingers
+  for (let i = -2; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cx + i * 15, 385);
+    ctx.lineTo(cx + i * 18, 385 + 25 + Math.abs(i) * (-5));
+    ctx.stroke();
+  }
+
+  // Vessels
+  const vessels = [
+    { name: 'Subclavian A.', x: cx, y: 30, color: '#e91e63' },
+    { name: 'Axillary A.', x: cx, y: 70, color: '#9c27b0' },
+    { name: 'Brachial A.', x: cx, y: 150, color: '#2196f3' },
+  ];
+
+  // Main trunk
+  ctx.strokeStyle = '#2196f3'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx, 20); ctx.lineTo(cx, 220);
+  ctx.stroke();
+
+  // Bifurcation
+  ctx.strokeStyle = '#4caf50'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(cx, 220); ctx.lineTo(cx - 20, 310); ctx.stroke();
+
+  ctx.strokeStyle = '#ff9800'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(cx, 220); ctx.lineTo(cx + 20, 310); ctx.stroke();
+
+  // Palmar arch
+  ctx.strokeStyle = '#00bcd4'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, 310);
+  ctx.quadraticCurveTo(cx, 365, cx + 20, 310);
+  ctx.stroke();
+
+  // Digital arteries
+  ctx.strokeStyle = '#f44336'; ctx.lineWidth = 1.5;
+  for (let i = -2; i <= 2; i++) {
+    const archX = cx + i * 10;
+    const archY = 340 + Math.abs(i) * (-5);
+    ctx.beginPath();
+    ctx.moveTo(archX, archY);
+    ctx.lineTo(cx + i * 18, 385 + 15 + Math.abs(i) * (-5));
+    ctx.stroke();
+  }
+
+  // Labels
+  ctx.font = '12px sans-serif';
+  const labels = [
+    { text: 'Subclavian A.', x: cx + 50, y: 35, color: '#e91e63' },
+    { text: 'Axillary A.', x: cx + 50, y: 75, color: '#9c27b0' },
+    { text: 'Brachial A.', x: cx + 50, y: 155, color: '#2196f3' },
+    { text: 'Radial A.', x: cx - 80, y: 270, color: '#4caf50' },
+    { text: 'Ulnar A.', x: cx + 40, y: 270, color: '#ff9800' },
+    { text: 'Palmar Arch', x: cx + 50, y: 350, color: '#00bcd4' },
+    { text: 'Digital Aa.', x: cx + 50, y: 395, color: '#f44336' },
+  ];
+  labels.forEach(l => {
+    ctx.fillStyle = l.color;
+    ctx.fillText(l.text, l.x, l.y);
+  });
+
+  // Dots at key points
+  [
+    { x: cx, y: 30, c: '#e91e63' },
+    { x: cx, y: 70, c: '#9c27b0' },
+    { x: cx, y: 150, c: '#2196f3' },
+    { x: cx, y: 220, c: '#fff' },
+    { x: cx - 20, y: 310, c: '#4caf50' },
+    { x: cx + 20, y: 310, c: '#ff9800' },
+  ].forEach(d => {
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = d.c;
+    ctx.fill();
+  });
+}
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+
+    if (tab.dataset.tab === 'comparison') drawComparisonTab();
+    if (tab.dataset.tab === 'anatomy') setTimeout(drawAnatomy, 50);
+  });
+});
+
+// Presets
+const presets = {
+  normal: { psv: 80, edv: 20, reversal: -15, hr: 72, title: 'Normal Triphasic Waveform', sub: 'High-resistance pattern — normal upper extremity artery', pattern: 'Triphasic',
+    info: '<strong>Triphasic waveform:</strong> Normal high-resistance pattern. Phase 1: rapid systolic upstroke. Phase 2: early diastolic flow reversal (reflects peripheral resistance). Phase 3: late diastolic forward flow. Seen in normal resting upper & lower extremity arteries.' },
+  biphasic: { psv: 70, edv: 15, reversal: -5, hr: 72, title: 'Biphasic Waveform', sub: 'Mildly reduced resistance — may be normal variant', pattern: 'Biphasic',
+    info: '<strong>Biphasic waveform:</strong> Reduced or absent diastolic reversal. May indicate mild distal vasodilation, post-exercise state, or early disease. Can be normal in digital arteries which have lower resistance.' },
+  monophasic: { psv: 40, edv: 10, reversal: 0, hr: 72, title: 'Monophasic Waveform', sub: 'Low-resistance or post-stenotic — seen in Raynaud\'s', pattern: 'Monophasic',
+    info: '<strong>Monophasic waveform:</strong> No diastolic reversal, continuous forward flow. Indicates significant vasodilation or post-stenotic flow. In Raynaud\'s: seen in affected digits. Also normal distal to AV fistula or in post-exercise state.' },
+  dampened: { psv: 15, edv: 3, reversal: 0, hr: 72, title: 'Dampened (Tardus-Parvus)', sub: 'Severely reduced flow — severe Raynaud\'s or proximal stenosis', pattern: 'Dampened',
+    info: '<strong>Dampened waveform (Tardus-Parvus):</strong> Slow systolic upstroke, low amplitude, rounded peak. Indicates severe proximal stenosis or near-complete occlusion. In Raynaud\'s: seen in severely affected digital arteries, especially during vasospastic episode.' },
+  absent: { psv: 0, edv: 0, reversal: 0, hr: 72, title: 'Absent Flow', sub: 'No detectable flow — complete occlusion or severe spasm', pattern: 'Absent',
+    info: '<strong>Absent flow:</strong> No Doppler signal detected. In Raynaud\'s: indicates complete vasospasm or digital artery occlusion. Must differentiate from technical failure — check PRF, gain, angle. If truly absent, suggests severe disease or thrombosis.' }
+};
+
+function setPreset(name) {
+  const p = presets[name];
+  document.getElementById('psv').value = p.psv;
+  document.getElementById('edv').value = p.edv;
+  document.getElementById('reversal').value = p.reversal;
+  document.getElementById('hr').value = p.hr;
+  document.getElementById('waveform-title').textContent = p.title;
+  document.getElementById('waveform-subtitle').textContent = p.sub;
+  document.getElementById('waveform-info').innerHTML = p.info;
+
+  document.querySelectorAll('#tab-simulator .scenario-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  updateWaveform();
+}
+
+function updateWaveform() {
+  const psv = parseInt(document.getElementById('psv').value);
+  const edv = parseInt(document.getElementById('edv').value);
+  const reversal = parseInt(document.getElementById('reversal').value);
+  const hr = parseInt(document.getElementById('hr').value);
+
+  document.getElementById('psv-val').textContent = psv + ' cm/s';
+  document.getElementById('edv-val').textContent = edv + ' cm/s';
+  document.getElementById('reversal-val').textContent = reversal + ' cm/s';
+  document.getElementById('hr-val').textContent = hr + ' bpm';
+
+  document.getElementById('disp-psv').innerHTML = psv + ' <span class="unit">cm/s</span>';
+  document.getElementById('disp-edv').innerHTML = edv + ' <span class="unit">cm/s</span>';
+
+  const ri = psv > 0 ? ((psv - edv) / psv).toFixed(2) : '—';
+  const pi = psv > 0 ? ((psv - Math.min(edv, reversal)) / ((psv + edv) / 2)).toFixed(2) : '—';
+  document.getElementById('disp-ri').textContent = ri;
+  document.getElementById('disp-pi').textContent = pi;
+
+  let pattern = 'Triphasic';
+  if (psv === 0) pattern = 'Absent';
+  else if (psv < 20) pattern = 'Dampened';
+  else if (reversal >= -3) pattern = edv > psv * 0.3 ? 'Low-resistance' : 'Monophasic';
+  else if (reversal > -10) pattern = 'Biphasic';
+  document.getElementById('disp-pattern').textContent = pattern;
+
+  drawWaveform('mainCanvas', { psv, edv, reversal, hr });
+}
+
+function drawComparisonTab() {
+  drawWaveform('normalCanvas', { psv: 45, edv: 12, reversal: -8, hr: 72 }, '#4caf50');
+  drawWaveform('raynaudCanvas', { psv: 12, edv: 0, reversal: 0, hr: 72 }, '#f44336');
+  drawDualWaveform('brachialCompCanvas',
+    { psv: 80, edv: 20, reversal: -15, hr: 72 },
+    { psv: 55, edv: 8, reversal: -5, hr: 72 },
+    '#4caf50', '#f44336'
+  );
+}
+
+// Vessel-specific waveform
+function showVesselWaveform(vessel) {
+  const vesselParams = {
+    subclavian: { psv: 100, edv: 25, reversal: -20, hr: 72 },
+    axillary: { psv: 85, edv: 22, reversal: -18, hr: 72 },
+    brachial: { psv: 75, edv: 20, reversal: -15, hr: 72 },
+    radial: { psv: 55, edv: 15, reversal: -10, hr: 72 },
+    ulnar: { psv: 48, edv: 12, reversal: -8, hr: 72 },
+    palmar: { psv: 30, edv: 10, reversal: -3, hr: 72 },
+    digital: { psv: 40, edv: 12, reversal: -6, hr: 72 },
+  };
+  const p = vesselParams[vessel];
+  // Switch to simulator tab and set values
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector('[data-tab="simulator"]').classList.add('active');
+  document.getElementById('tab-simulator').classList.add('active');
+
+  document.getElementById('psv').value = p.psv;
+  document.getElementById('edv').value = p.edv;
+  document.getElementById('reversal').value = p.reversal;
+  document.getElementById('hr').value = p.hr;
+  document.getElementById('waveform-title').textContent = vessel.charAt(0).toUpperCase() + vessel.slice(1) + ' Artery — Normal';
+  document.getElementById('waveform-subtitle').textContent = 'Expected normal waveform at this level';
+  updateWaveform();
+}
+
+// Clinical scenarios
+const scenarios = {
+  normal_rest: {
+    v1: { title: 'Brachial A.', psv: 80, edv: 20, reversal: -15, hr: 72 },
+    v2: { title: 'Digital A.', psv: 45, edv: 12, reversal: -8, hr: 72 },
+    info: '<strong>Normal at rest:</strong> Both proximal and distal vessels show normal waveforms. Brachial is triphasic with good diastolic reversal. Digital arteries show slightly lower resistance pattern which is normal distally.'
+  },
+  normal_exercise: {
+    v1: { title: 'Brachial A. (post-exercise)', psv: 110, edv: 40, reversal: 0, hr: 95 },
+    v2: { title: 'Digital A. (post-exercise)', psv: 60, edv: 25, reversal: 0, hr: 95 },
+    info: '<strong>Post-exercise:</strong> Waveforms become monophasic with increased diastolic flow due to peripheral vasodilation. PSV increases. This is NORMAL — do not confuse with disease. Allow 10-15 min rest before diagnostic scanning.'
+  },
+  raynaud_mild: {
+    v1: { title: 'Brachial A.', psv: 70, edv: 15, reversal: -10, hr: 72 },
+    v2: { title: 'Digital A. (affected)', psv: 25, edv: 5, reversal: 0, hr: 72 },
+    info: '<strong>Mild Raynaud\'s:</strong> Brachial artery nearly normal. Digital arteries show reduced PSV with loss of diastolic reversal (monophasic). RI increased. Flow still detectable.'
+  },
+  raynaud_severe: {
+    v1: { title: 'Radial A.', psv: 50, edv: 5, reversal: -3, hr: 72 },
+    v2: { title: 'Digital A. (affected)', psv: 8, edv: 0, reversal: 0, hr: 72 },
+    info: '<strong>Severe Raynaud\'s:</strong> Radial artery shows increased resistance (high RI). Digital arteries severely dampened — barely detectable flow with tardus-parvus pattern. May need to differentiate from thrombotic occlusion.'
+  },
+  raynaud_cold: {
+    v1: { title: 'Digital A. (pre-cold)', psv: 35, edv: 8, reversal: -5, hr: 72 },
+    v2: { title: 'Digital A. (post-cold)', psv: 5, edv: 0, reversal: 0, hr: 80 },
+    info: '<strong>Cold provocation test:</strong> Digital artery flow dramatically decreases after cold exposure. Recovery time >10 min suggests Raynaud\'s (normal: recovers in 5-7 min). PSV drop >70% is highly suggestive.'
+  },
+  stenosis: {
+    v1: { title: 'Pre-stenotic', psv: 120, edv: 30, reversal: -20, hr: 72 },
+    v2: { title: 'Post-stenotic', psv: 25, edv: 8, reversal: 0, hr: 72 },
+    info: '<strong>Proximal stenosis:</strong> Pre-stenotic: elevated PSV. At stenosis: focal velocity increase (PSV ratio >2). Post-stenotic: tardus-parvus pattern with slow upstroke and dampened amplitude. Must check subclavian/axillary for embolic source.'
+  },
+  occlusion: {
+    v1: { title: 'Ulnar A. (patent)', psv: 50, edv: 12, reversal: -8, hr: 72 },
+    v2: { title: '4th Digital A. (occluded)', psv: 0, edv: 0, reversal: 0, hr: 72 },
+    info: '<strong>Digital artery occlusion:</strong> Complete absence of flow in affected digit. Adjacent patent arteries show compensatory increased flow. In Raynaud\'s with fixed occlusion: indicates secondary cause (scleroderma, thromboangiitis). Check for mural thrombus.'
+  },
+  hypothenar: {
+    v1: { title: 'Radial A. (normal)', psv: 55, edv: 15, reversal: -10, hr: 72 },
+    v2: { title: 'Ulnar A. (at hook of hamate)', psv: 15, edv: 3, reversal: 0, hr: 72 },
+    info: '<strong>Hypothenar Hammer Syndrome:</strong> Ulnar artery damaged at hook of hamate (repetitive trauma). Shows aneurysm, thrombosis, or stenosis at that level. Radial artery normal. 4th-5th digits may show reduced flow. Important DDx for Raynaud\'s-like symptoms in dominant hand.'
+  }
+};
+
+function loadScenario(name) {
+  const s = scenarios[name];
+  document.getElementById('scenario-display').style.display = 'block';
+  document.getElementById('scenario-vessel1-title').textContent = s.v1.title;
+  document.getElementById('scenario-vessel2-title').textContent = s.v2.title;
+  document.getElementById('scenario-info').innerHTML = s.info;
+
+  document.querySelectorAll('#tab-scenarios .scenario-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  setTimeout(() => {
+    drawWaveform('scenarioCanvas1', { psv: s.v1.psv, edv: s.v1.edv, reversal: s.v1.reversal, hr: s.v1.hr }, '#64b5f6');
+    drawWaveform('scenarioCanvas2', { psv: s.v2.psv, edv: s.v2.edv, reversal: s.v2.reversal, hr: s.v2.hr },
+      s.v2.psv === 0 ? '#555' : s.v2.psv < 20 ? '#f44336' : '#64b5f6');
+
+    // Params
+    ['1', '2'].forEach((n, i) => {
+      const v = i === 0 ? s.v1 : s.v2;
+      const ri = v.psv > 0 ? ((v.psv - v.edv) / v.psv).toFixed(2) : '—';
+      document.getElementById('scenario-params' + n).innerHTML = `
+        <div class="param"><label>PSV</label><div class="value">${v.psv} <span class="unit">cm/s</span></div></div>
+        <div class="param"><label>EDV</label><div class="value">${v.edv} <span class="unit">cm/s</span></div></div>
+        <div class="param"><label>RI</label><div class="value">${ri}</div></div>
+      `;
+    });
+  }, 50);
+}
+
+// Init
+window.addEventListener('resize', () => {
+  updateWaveform();
+  if (document.getElementById('tab-comparison').classList.contains('active')) drawComparisonTab();
+  if (document.getElementById('tab-anatomy').classList.contains('active')) drawAnatomy();
+});
+
+updateWaveform();
+</script>
+</body>
+</html>
